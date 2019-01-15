@@ -30,7 +30,6 @@ func HammerMutex(m *Mutex, loops int, cdone chan bool) {
 	cdone <- true
 }
 
-
 func TestMutex(t *testing.T) {
 	if n := runtime.SetMutexProfileFraction(1); n != 0 {
 		t.Logf("got mutexrate %d expected 0", n)

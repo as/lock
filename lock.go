@@ -9,10 +9,10 @@
 // - Decrement by 2 on unlock.
 //
 // Writer:
-// 	- CAS on the values [0, 1], write lock held if the CAS occurs
-//  - Decrement by 1 on unlock
-//  - Downgrade by incrementing by 1. Writer -> Reader.
-//  - Downgraded writer unlocks as a Reader decrementing by 2.
+// - CAS on the values [0, 1], write lock held if the CAS occurs
+// - Decrement by 1 on unlock
+// - Downgrade by incrementing by 1. Writer -> Reader.
+// - Downgraded writer unlocks as a Reader decrementing by 2.
 package lock
 
 import "sync/atomic"
@@ -54,7 +54,7 @@ func (rw *RW) RUnlock() {
 //
 // Proper usage:
 //
-// 	rw.Lock() 
+// 	rw.Lock()
 // /* write operation*/
 //
 // 	rw.Downgrade()
