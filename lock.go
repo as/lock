@@ -5,40 +5,51 @@
 // Implementation details:
 //
 // Reader:
-// - Increment the lock by 2 and ensure the result is even.
-// - Decrement by 2 on unlock.
+// - Increment the lock by +2, check for even result.
+//
+// - If not even, spin until it is even.
+//   We know that the writer will eventually decrement the lock to even.
+//   We also know no new writer takes the lock if it is not in a 0 state
+//   (which we ensure in the first step by adding +2.
+//
+// - Lock acquired.
+//
+// - Unlock: To release the lock, we add -2.
 //
 // Writer:
-// - CAS on the values [0, 1], write lock held if the CAS occurs
-// - Decrement by 1 on unlock
-// - Downgrade by incrementing by 1. Writer -> Reader.
-// - Downgraded writer unlocks as a Reader decrementing by 2.
+// - CAS on the values [0, 1], write lock held if the CAS occurs.
+//
+// - Unlock: add -1.
+//
+// - Downgrade: add +1, writer is now a reader.
+//
+// - Downgrade unlock: add -2 (same as reader).
 package lock
 
 import "sync/atomic"
 
 // RW is a downgradeable read/write spinlock.
-type RW uint32
+type RW uint64
 
 // Lock locks rw. If the lock is already in use, the calling goroutine
 // spins until the rw is available.
 func (rw *RW) Lock() {
-	for atomic.CompareAndSwapUint32((*uint32)(rw), 0, 1) {
+	for atomic.CompareAndSwapUint64((*uint64)(rw), 0, 1) {
 	}
 }
 
 // Unlock unlocks rw. It is undefined if rw is not locked on entry
 // to Unlock.
 func (rw *RW) Unlock() {
-	atomic.AddUint32((*uint32)(rw), (^uint32(0))-1)
+	atomic.AddUint64((*uint64)(rw), (^uint64(0))-1)
 }
 
 // Lock locks rw for reading. If there is a concurrent writer
 // the calling goroutine spins until the rw is available for
 // reading.
 func (rw *RW) RLock() {
-	if atomic.AddUint32((*uint32)(rw), 2)&1 != 0 {
-		for atomic.LoadUint32((*uint32)(rw))&1 != 0 {
+	if atomic.AddUint64((*uint64)(rw), 2)&1 != 0 {
+		for atomic.LoadUint64((*uint64)(rw))&1 != 0 {
 		}
 	}
 }
@@ -46,7 +57,7 @@ func (rw *RW) RLock() {
 // Unlock unlocks rw for reading. The operation is undefined if
 // the read lock isn't held.
 func (rw *RW) RUnlock() {
-	atomic.AddUint32((*uint32)(rw), (^uint32(0))-2)
+	atomic.AddUint64((*uint64)(rw), (^uint64(0))-2)
 }
 
 // Downgrade transitions rw from a write-locked state to a read-locked
@@ -64,5 +75,5 @@ func (rw *RW) RUnlock() {
 //  /* release */
 //
 func (rw *RW) Downgrade() {
-	atomic.AddUint32((*uint32)(rw), 1)
+	atomic.AddUint64((*uint64)(rw), 1)
 }
