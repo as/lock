@@ -2,27 +2,27 @@
 // supporting many concurrent readers or one writer. The writer
 // can downgrade their write lock to a read lock.
 //
-// Implementation details:
+// Behaviors:
+// - Priority: readers over writers (grouped reads) over sequential writes.
+// - Readers have priority over writers, reserving a read of the
+//   value currently protected by the lock or the value currently
+//  being written by a writer.
+// - Writer can become a reader, releasing the write half of the lock
 //
+// Implementation details:
 // Reader:
 // - Increment the lock by +2, check for even result.
-//
 // - If not even, spin until it is even.
 //   We know that the writer will eventually decrement the lock to even.
 //   We also know no new writer takes the lock if it is not in a 0 state
 //   (which we ensure in the first step by adding +2.
-//
 // - Lock acquired.
-//
 // - Unlock: To release the lock, we add -2.
 //
 // Writer:
 // - CAS on the values [0, 1], write lock held if the CAS occurs.
-//
 // - Unlock: add -1.
-//
 // - Downgrade: add +1, writer is now a reader.
-//
 // - Downgrade unlock: add -2 (same as reader).
 package lock
 
