@@ -30,7 +30,7 @@ func (rw *RW) Lock() {
 // Unlock unlocks rw. It is undefined if rw is not locked on entry
 // to Unlock.
 func (rw *RW) Unlock() {
-	atomic.AddUint32((*uint32)(rw), ^uint32(0)-1)
+	atomic.AddUint32((*uint32)(rw), (^uint32(0))-1)
 }
 
 // Lock locks rw for reading. If there is a concurrent writer
@@ -46,7 +46,7 @@ func (rw *RW) RLock() {
 // Unlock unlocks rw for reading. The operation is undefined if
 // the read lock isn't held.
 func (rw *RW) RUnlock() {
-	atomic.AddUint32((*uint32)(rw), ^uint32(0)-2)
+	atomic.AddUint32((*uint32)(rw), (^uint32(0))-2)
 }
 
 // Downgrade transitions rw from a write-locked state to a read-locked
