@@ -54,10 +54,10 @@ func (rw *RW) RUnlock() {
 //
 // Proper usage:
 //
-// 	rw.Lock()
+//  rw.Lock()
 // /* write operation*/
 //
-// 	rw.Downgrade()
+//  rw.Downgrade()
 //  /* now a reader: read operation */
 //
 //  rw.RUnlock()
