@@ -34,7 +34,7 @@ type RW uint64
 // Lock locks rw. If the lock is already in use, the calling goroutine
 // spins until the rw is available.
 func (rw *RW) Lock() {
-	for atomic.CompareAndSwapUint64((*uint64)(rw), 0, 1) {
+	for !atomic.CompareAndSwapUint64((*uint64)(rw), 0, 1) {
 	}
 }
 
