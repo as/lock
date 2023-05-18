@@ -29,27 +29,27 @@ package lock
 import "sync/atomic"
 
 // RW is a downgradeable read/write spinlock.
-type RW uint64
+type RW int64
 
 // Lock locks rw. If the lock is already in use, the calling goroutine
 // spins until the rw is available.
 func (rw *RW) Lock() {
-	for !atomic.CompareAndSwapUint64((*uint64)(rw), 0, 1) {
+	for !atomic.CompareAndSwapInt64((*int64)(rw), 0, 1) {
 	}
 }
 
 // Unlock unlocks rw. It is undefined if rw is not locked on entry
 // to Unlock.
 func (rw *RW) Unlock() {
-	atomic.AddUint64((*uint64)(rw), (^uint64(0))-1)
+	atomic.AddInt64((*int64)(rw), -1)
 }
 
 // Lock locks rw for reading. If there is a concurrent writer
 // the calling goroutine spins until the rw is available for
 // reading.
 func (rw *RW) RLock() {
-	if atomic.AddUint64((*uint64)(rw), 2)&1 != 0 {
-		for atomic.LoadUint64((*uint64)(rw))&1 != 0 {
+	if atomic.AddInt64((*int64)(rw), 2)&1 != 0 {
+		for atomic.LoadInt64((*int64)(rw))&1 != 0 {
 		}
 	}
 }
@@ -57,7 +57,7 @@ func (rw *RW) RLock() {
 // Unlock unlocks rw for reading. The operation is undefined if
 // the read lock isn't held.
 func (rw *RW) RUnlock() {
-	atomic.AddUint64((*uint64)(rw), (^uint64(0))-2)
+	atomic.AddInt64((*int64)(rw), -2)
 }
 
 // Downgrade transitions rw from a write-locked state to a read-locked
@@ -75,5 +75,5 @@ func (rw *RW) RUnlock() {
 //  /* release */
 //
 func (rw *RW) Downgrade() {
-	atomic.AddUint64((*uint64)(rw), 1)
+	atomic.AddInt64((*int64)(rw), 1)
 }
