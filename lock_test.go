@@ -20,7 +20,6 @@ import (
 )
 
 type Mutex = RW
-type RWMutex = RW
 
 func HammerMutex(m *Mutex, loops int, cdone chan bool) {
 	for i := 0; i < loops; i++ {
